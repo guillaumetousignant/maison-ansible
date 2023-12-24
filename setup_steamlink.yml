@@ -1,0 +1,38 @@
+- name: Configuration
+  hosts: steamlink
+
+  tasks:
+  - name: Copy steamlink config
+    ansible.builtin.blockinfile:
+      path: /home/pi/.config/fish/config.fish
+      append_newline: true
+      backup: yes
+      create: true
+      marker: "# {mark} STEAMLINK ANSIBLE MANAGED BLOCK"
+      block: |
+        # These are also set in moonlight-qt.service
+        set -gx QT_QPA_EGLFS_PHYSICAL_WIDTH {{ screen_width }}
+        set -gx QT_QPA_EGLFS_PHYSICAL_HEIGHT {{ screen_height }}
+        set -gx QT_QPA_PLATFORM "EGLFS"
+        set -gx QT_QPA_EGLFS_ALWAYS_SET_MODE 1
+
+- name: Package installation
+  hosts: steamlink
+
+  tasks:
+  - name: Install Steam
+    ansible.builtin.shell: curl -sSL https://raw.githubusercontent.com/icolwell/install_scripts/master/steamlink_install.bash | bash
+    args:
+      creates: /usr/lib/arm-linux-gnueabihf/libbcm_host.so
+  - name: Install Moonlight Qt repo
+    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/moonlight-game-streaming/moonlight-qt/setup.deb.sh' | distro=raspbian sudo -E bash
+  - name: Install Moonlight Embedded repo
+    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/moonlight-game-streaming/moonlight-embedded/setup.deb.sh' | distro=raspbian sudo -E bash
+  - name: Install Moonklight and remmina
+    become: true
+    ansible.builtin.apt:
+      update_cache: yes
+      pkg:
+        - remmina
+        - moonlight-qt
+        - moonlight-embedded

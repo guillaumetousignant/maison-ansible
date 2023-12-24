@@ -1,0 +1,119 @@
+- name: Install Raspberry Pi packages
+  hosts: raspberry_pi
+
+  tasks:
+  - name: Install a list of packages
+    become: true
+    ansible.builtin.apt:
+      pkg:
+        - bat
+        - cowsay
+        - cowsay-off
+        - curl
+        - fbterm
+        - fd-find
+        - fish
+        - fonts-firacode
+        - fortune-anarchism
+        - fortune-mod
+        - fortunes-bofh-excuses
+        - fortunes-debian-hints
+        - fortunes-fr
+        - fortunes-off
+        - fortunes
+        - fzf
+        - htop
+        - httpie
+        - iperf3
+        - lolcat
+        - micro
+        - most
+        - ncdu
+        - neofetch
+        - ripgrep
+        - rsync
+        - screenfetch
+        - sl
+        - thefuck
+        - tmux
+        - tree
+      update_cache: yes
+
+- name: Install Raspberry Pi OS packages
+  hosts: raspberry_pi_os
+
+  tasks:
+  - name: Install a list of packages
+    become: true
+    ansible.builtin.apt:
+      pkg:
+        - eza
+  - name: Install bottom
+    become: true
+    ansible.builtin.apt:
+      deb: https://github.com/ClementTsang/bottom/releases/download/0.9.6/bottom_0.9.6_arm64.deb
+
+- name: Install Raspbian packages
+  hosts: raspbian
+
+  tasks:
+  - name: Install a list of packages
+    become: true
+    ansible.builtin.apt:
+      pkg:
+        - exa
+  - name: Install bottom
+    become: true
+    ansible.builtin.apt:
+      deb: https://github.com/ClementTsang/bottom/releases/download/0.9.6/bottom_0.9.6_armhf.deb
+
+- name: Configuration
+  hosts: raspberry_pi
+
+  tasks:
+  - name: Copy micro syntax
+    ansible.builtin.copy:
+      src: config/micro/syntax/
+      dest: /home/pi/.config/micro/syntax/
+  - name: Copy micro settings with backup
+    ansible.builtin.copy:
+      src: config/micro/settings.json
+      dest: /home/pi/.config/micro/settings.json
+      backup: yes
+  - name: Copy fish functions
+    ansible.builtin.copy:
+      src: config/fish/functions/
+      dest: /home/pi/.config/fish/functions/
+  - name: Copy fish config
+    ansible.builtin.blockinfile:
+      path: /home/pi/.config/fish/config.fish
+      append_newline: true
+      backup: yes
+      create: true
+      marker: "# {mark} CONFIG ANSIBLE MANAGED BLOCK"
+      block: |
+        if status is-interactive
+            set -gx MICRO_TRUECOLOR 1
+            set -gx FZF_DEFAULT_COMMAND "fd --type file --color=always"
+            set -gx FZF_DEFAULT_OPTS "--ansi"
+            set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
+            set -gx EDITOR /usr/bin/micro
+            set -gx PAGER /usr/bin/most
+            set -gx MOST_EDITOR "micro +%d:1 %s"
+            set -gx SLANG_EDITOR "micro +%d:1 %s"
+        
+            starship init fish | source
+        end
+  - name: Install fisher
+    ansible.builtin.shell: curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+    args:
+      executable: /usr/bin/fish
+  - name: Install fisher packages
+    ansible.builtin.shell: fisher install jethrokuan/fzf jethrokuan/z
+    args:
+      executable: /usr/bin/fish
+  - name: Change shell to fish
+    become: true
+    ansible.builtin.user:
+      name: pi
+      shell: /usr/bin/fish

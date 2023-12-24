@@ -1,0 +1,26 @@
+- name: Upgrade Raspberry Pis
+  hosts: raspberry_pi
+
+  tasks:
+  - name: Upgrade all packages to their latest version, remove dependencies that are no longer required
+    become: true
+    ansible.builtin.apt:
+      name: "*"
+      state: latest
+      update_cache: yes
+      autoremove: yes
+  - name: Upgrade all fisher packages
+    ansible.builtin.shell: fisher update
+    args:
+      executable: /usr/bin/fish
+
+- name: Update Container Hosts
+  hosts: container_hosts
+
+  tasks:
+  - name: Upgrade the rpm-ostree image without options, accept all defaults
+    become: true
+    ansible.posix.rpm_ostree_upgrade:
+  - name: Unconditionally reboot the machine with all defaults
+    become: true
+    ansible.builtin.reboot:
