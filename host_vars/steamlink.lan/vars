@@ -1,0 +1,7 @@
+---
+screen_width: 1040
+screen_height: 585
+bitrate: 150000
+wireguard_ip: "{{ vault_wireguard_ip }}"
+wireguard_public_key: "{{ vault_wireguard_public_key }}"
+wireguard_private_key: "{{ vault_wireguard_private_key }}"

@@ -10,31 +10,23 @@ raspberry_pi:
   children:
     raspbian:
     raspberry_pi_os:
-  vars:
-    ansible_user: pi
-steamlink:
+moonlight:
   hosts:
     steamlink.lan:
-      screen_width: 1040
-      screen_height: 585
     steamlinkproj.lan:
-      screen_width: 2616
-      screen_height: 1472
+steamlink:
+  hosts:
+    steamlinkproj.lan:
+game_stream:
+  children:
+    moonlight:
+    steamlink:
 pi_hole:
   hosts:
     pihole.lan:
 container_hosts:
   hosts:
     raspberrypi3bplus.lan:
-  vars:
-    ansible_user: guillaume
-    ansible_become_password: !vault |
-              $ANSIBLE_VAULT;1.1;AES256
-              37346364336133383137313936613839386638386131663531666666303863333733653563323938
-              6165326563326133313436326138353361643963643862390a306138373039663234373030623832
-              66646462363335343837646630343265323630613031313663363461616532343362656365313563
-              6666663565343935610a333233353164303831666265653933323436366664313632613032643632
-              3230
 home_assistant:
   hosts:
     homeassistant.lan:

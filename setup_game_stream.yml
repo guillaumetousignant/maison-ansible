@@ -1,0 +1,159 @@
+- name: Game Stream Configuration
+  hosts: game_stream
+
+  tasks:
+  - name: Copy fish config
+    ansible.builtin.blockinfile:
+      path: /home/pi/.config/fish/config.fish
+      append_newline: true
+      backup: yes
+      create: true
+      marker: "# {mark} STEAMLINK ANSIBLE MANAGED BLOCK"
+      block: |
+        # These are also set in moonlight-qt.service
+        set -gx QT_QPA_EGLFS_PHYSICAL_WIDTH {{ screen_width }}
+        set -gx QT_QPA_EGLFS_PHYSICAL_HEIGHT {{ screen_height }}
+        set -gx QT_QPA_PLATFORM "EGLFS"
+        set -gx QT_QPA_EGLFS_ALWAYS_SET_MODE 1
+
+- name: Moonlight Configuration
+  hosts: moonlight
+
+  tasks:
+  - name: Copy Moonlight Embedded config
+    ansible.builtin.copy:
+      dest: /home/pi/moonlight.cfg
+      backup: yes
+      content: |
+        bitrate = {{ bitrate }}
+        packetsize = 1392
+        app = Steam Big Picture
+  - name: Copy Moonlight Qt config
+    ansible.builtin.copy:
+      dest: /home/pi/moonlight-qt.service
+      backup: yes
+      content: |
+        [Unit]
+        Description=Moonlight PC
+        After=network.target
+        After=multi-user.target
+        
+        [Service]
+        Type=simple
+        Environment="QT_QPA_EGLFS_PHYSICAL_WIDTH={{ screen_width }}"
+        Environment="QT_QPA_EGLFS_PHYSICAL_HEIGHT={{ screen_height }}"
+        Environment="QT_QPA_PLATFORM=EGLFS"
+        Environment="QT_QPA_EGLFS_ALWAYS_SET_MODE=1"
+        ExecStart=/usr/bin/moonlight-qt
+        Restart=on-failure
+        User=pi
+        
+        [Install]
+        WantedBy=multi-user.target
+
+
+
+- name: Package installation
+  hosts: game_stream
+
+  tasks:
+  - name: Install Wireguard, remmina, and libcec
+    become: true
+    ansible.builtin.apt:
+      update_cache: yes
+      pkg:
+        - remmina
+        - libcec6
+        - libcec-dev
+        - wireguard
+
+- name: Steam link installation
+  hosts: steamlink
+  
+  tasks:
+  - name: Install Steam link
+    ansible.builtin.shell: curl -sSL https://raw.githubusercontent.com/icolwell/install_scripts/master/steamlink_install.bash | bash
+    args:
+      creates: /usr/lib/arm-linux-gnueabihf/libbcm_host.so
+
+- name: Moonlight installation
+  hosts: moonlight
+
+  tasks:
+  - name: Install Moonlight Qt repo
+    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/moonlight-game-streaming/moonlight-qt/setup.deb.sh' | distro=raspbian sudo -E bash
+  - name: Install Moonlight Embedded repo
+    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/moonlight-game-streaming/moonlight-embedded/setup.deb.sh' | distro=raspbian sudo -E bash
+  - name: Install Moonlight
+    become: true
+    ansible.builtin.apt:
+      update_cache: yes
+      pkg:
+        - moonlight-qt
+        - moonlight-embedded
+
+- name: Moonlight auto-start
+  hosts: moonlight
+
+  tasks:
+  - name: Symlink Moonlight Qt service
+    become: true
+    ansible.builtin.file:
+      src: /home/pi/moonlight-qt.service
+      dest: /etc/systemd/system/moonlight-qt.service
+      state: link
+  - name: Enable Moonlight Qt
+    become: true
+    ansible.builtin.systemd_service:
+      name: moonlight-qt
+      enabled: true
+      masked: no
+  - name: Start Moonblight Qt
+    become: true
+    ansible.builtin.systemd_service:
+      name: moonlight-qt
+      state: started
+
+- name: Wireguard setup
+  hosts: game_stream
+
+  tasks:
+  - name: Wireguard configuration
+    become: true
+    ansible.builtin.copy:
+      dest: /etc/wireguard/wg0.conf
+      backup: yes
+      content: |
+        [Interface]
+        PrivateKey = {{ wireguard_private_key }}
+        Address = {{ wireguard_ip }}/32
+        DNS = {{ dns_server }}
+        
+        [Peer]
+        PublicKey = {{ wireguard_server_public_key }}
+        AllowedIPs = 0.0.0.0/0
+        Endpoint = {{ wireguard_server }}
+  - name: Wireguard interface
+    become: true
+    ansible.builtin.copy:
+      dest: /etc/network/interfaces.d/wg0
+      backup: yes
+      content: |
+        # indicate that wg0 should be created when the system boots, and on ifup -a
+        #auto wg0
+        
+        # describe wg0 as an IPv4 interface with static address
+        iface wg0 inet static
+        
+            # the IP address of this client on the WireGuard network
+            address {{ wireguard_ip }}/16
+        
+            # before ifup, set the WireGuard config from earlier
+            pre-up wg-quick up $IFACE
+        
+            # after ifdown, destroy the wg0 interface
+            post-down ip link del $IFACE
+
+# RPI5 install pipewire
+# RPI5 add set -gx QT_QPA_EGLFS_KMS_CONFIG "/home/pi/eglfs.json" to fish config and service file
+# RPI5 add { "device": "/dev/dri/card1" } to eglfs.json

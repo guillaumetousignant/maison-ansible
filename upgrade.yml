@@ -24,3 +24,10 @@
   - name: Unconditionally reboot the machine with all defaults
     become: true
     ansible.builtin.reboot:
+    
+- name: Update Pi-hole
+  hosts: pi_hole
+
+  tasks:
+  - name: Upgrade Pi-hole executable
+    ansible.builtin.shell: pihole -up

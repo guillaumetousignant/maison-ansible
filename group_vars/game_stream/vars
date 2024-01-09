@@ -1,0 +1,4 @@
+---
+wireguard_server: "{{ vault_wireguard_server }}"
+wireguard_server_public_key: "{{ vault_wireguard_server_public_key }}"
+dns_server: "{{ vault_dns_server }}"
