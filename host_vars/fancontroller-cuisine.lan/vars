@@ -1,0 +1,3 @@
+---
+client_id: "{{ vault_client_id }}"
+message_broker_password: "{{ vault_message_broker_password }}"

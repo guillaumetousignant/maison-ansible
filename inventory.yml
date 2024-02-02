@@ -33,3 +33,6 @@ home_assistant:
 libreelec:
   hosts:
     libreelec.lan:
+fan_controller:
+  hosts:
+    fancontroller-cuisine.lan:

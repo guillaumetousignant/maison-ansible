@@ -1,0 +1,3 @@
+---
+ansible_user: "{{ vault_ansible_user }}"
+message_broker_address: "{{ vault_message_broker_address }}"

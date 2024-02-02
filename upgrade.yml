@@ -1,5 +1,7 @@
 - name: Upgrade Raspberry Pis
-  hosts: raspberry_pi
+  hosts: 
+  - raspberry_pi
+  - fan_controller
 
   tasks:
   - name: Upgrade all packages to their latest version, remove dependencies that are no longer required
@@ -9,6 +11,13 @@
       state: latest
       update_cache: yes
       autoremove: yes
+
+- name: Upgrade Fisher packages
+  hosts: 
+  - raspberry_pi
+  - container_hosts
+
+  tasks:
   - name: Upgrade all fisher packages
     ansible.builtin.shell: fisher update
     args:
@@ -31,3 +40,12 @@
   tasks:
   - name: Upgrade Pi-hole executable
     ansible.builtin.shell: pihole -up
+
+- name: Update Fan COntroller
+  hosts: fan_controller
+
+  tasks:
+  - name: Clone Fan Controller repo
+    ansible.builtin.git:
+      repo: 'https://github.com/guillaumetousignant/fan_controller.git'
+      dest: /home/pi/Code/fan_controller

@@ -38,6 +38,7 @@
         - tldr
         - tmux
         - tree
+        - zoxide
       update_cache: yes
       
   - name: Install Starship
@@ -135,7 +136,8 @@
             set -gx PAGER /usr/bin/most
             set -gx MOST_EDITOR "micro +%d:1 %s"
             set -gx SLANG_EDITOR "micro +%d:1 %s"
-        
+
+            zoxide init fish | source
             starship init fish | source
         end
   - name: Install fisher
@@ -143,7 +145,7 @@
     args:
       executable: /usr/bin/fish
   - name: Install fisher packages
-    ansible.builtin.shell: fisher install jethrokuan/fzf jethrokuan/z
+    ansible.builtin.shell: fisher install PatrickF1/fzf.fish
     args:
       executable: /usr/bin/fish
   - name: Change shell to fish

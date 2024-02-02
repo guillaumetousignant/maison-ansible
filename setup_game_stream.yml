@@ -155,5 +155,6 @@
             post-down ip link del $IFACE
 
 # RPI5 install pipewire
+# RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
 # RPI5 add set -gx QT_QPA_EGLFS_KMS_CONFIG "/home/pi/eglfs.json" to fish config and service file
 # RPI5 add { "device": "/dev/dri/card1" } to eglfs.json
