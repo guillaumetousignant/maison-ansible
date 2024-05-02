@@ -1,0 +1,16 @@
+- name: Upgrade packages
+
+  tasks:
+  - name: Upgrade Fedora packages
+    become: true
+    ansible.builtin.dnf:
+      name: "*"
+      state: latest
+
+- name: Upgrade Fisher packages
+
+  tasks:
+  - name: Upgrade all fisher packages
+    ansible.builtin.shell: fisher update
+    args:
+      executable: /usr/bin/fish

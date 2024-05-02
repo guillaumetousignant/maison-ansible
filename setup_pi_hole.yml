@@ -8,8 +8,74 @@
     args:
       creates: /usr/local/bin/pihole
 
-#- name: Install Caddy
-#  hosts: pi_hole
-#
-#  tasks:
-#  - name: Install Caddy executable   
+- name: Install Caddy
+  hosts: pi_hole
+
+  tasks:
+  - name: Install keyring utilities
+    become: true
+    ansible.builtin.apt:
+      update_cache: yes
+      pkg:
+        - debian-keyring
+        - debian-archive-keyring
+        - apt-transport-https
+        - curl
+  - name: Install Caddy key
+    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    args:
+      creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  - name: Install Caddy repo
+    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+    args:
+      creates: /etc/apt/sources.list.d/caddy-stable.list
+  - name: Install Caddy package
+    become: true
+    ansible.builtin.apt:
+      update_cache: yes
+      pkg:
+        - caddy
+
+- name: Pi-hole config
+  hosts: pi_hole
+
+  tasks:
+  - name: PXE boot config
+    become: yes
+    ansible.builtin.copy:
+      dest: /etc/dnsmasq.d/98-pxe.conf
+      backup: yes
+      content: |
+        dhcp-boot=pxelinux/pxelinux.0
+        enable-tftp
+        tftp-root=/var/lib/tftpboot
+  - name: TFTP folder creation
+    become: yes
+    ansible.builtin.file:
+      path: /var/lib/tftpboot
+      state: directory
+      mode: '0755'
+  - name: PXE boot folder creation
+    become: yes
+    ansible.builtin.file:
+      path: /var/lib/tftpboot/pxelinux
+      state: directory
+      mode: '0755'
+
+- name: Caddy config
+  hosts: pi_hole
+
+  tasks:
+  - name: Caddyfile creation
+    become: yes
+    ansible.builtin.copy:
+      dest: /etc/caddy/Caddyfile
+      backup: yes
+      content: |
+        :42042 {
+                # Set this path to your site's directory.
+                root * /var/www/pxe
+        
+                # Enable the static file server.
+                file_server
+        }

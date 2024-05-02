@@ -1,0 +1,203 @@
+- name: Install packages
+
+  tasks:
+  - name: Install Fedora packages
+    become: true
+    ansible.builtin.dnf:
+      state: latest
+      name:
+        - bat
+        - bottom
+        - browsh
+        - clang
+        - clang-analyzer
+        - clang-tools-extra
+        - cmake
+        - colordiff
+        - cowsay
+        - cowsay-beefymiracle
+        - cppcheck
+        - dnf-utils
+        - doxygen
+        - eza
+        - fastfetch
+        - fd-find
+        - fira-code-fonts
+        - fish
+        - flang
+        - fortune-firefly
+        - fortune-mod
+        - fzf
+        - git
+        - gitoxide
+        - glances
+        - glibc-langpack-fr
+        - glibc-locale-source
+        - google-roboto-condensed-fonts
+        - google-roboto-fonts
+        - google-roboto-mono-fonts
+        - google-roboto-slab-fonts
+        - helix
+        - htop
+        - httpie
+        - iperf3
+        - langpacks-fr
+        - libcxx
+        - lld
+        - lldb
+        - llvm
+        - lolcat
+        - meson
+        - micro
+        - most
+        - ncdu
+        - ninja-build
+        - nushell
+        - pipx
+        - polly
+        - prettyping
+        - python3-pip
+        - ranger
+        - ripgrep
+        - rpmfusion-free-release
+        - rpmfusion-nonfree-release
+        - rr
+        - rsync
+        - sl
+        - sphinx
+        - starship
+        - thefuck
+        - tldr
+        - tmux
+        - tree
+        - valgring-openmpi
+        - wget2-wget
+        - wslu
+        - zoxide
+
+- name: Configuration
+
+  tasks:
+  - name: Copy micro syntax
+    ansible.builtin.copy:
+      src: config/micro/syntax/
+      dest: '/home/{{ ansible_user }}/.config/micro/syntax/'
+  - name: Copy micro settings with backup
+    ansible.builtin.copy:
+      src: config/micro/settings.json
+      dest: '/home/{{ ansible_user }}/.config/micro/settings.json'
+      backup: yes
+  - name: Copy root micro syntax
+    become: true
+    ansible.builtin.copy:
+      src: config/micro/syntax/
+      dest: /root/.config/micro/syntax/
+  - name: Copy root micro settings with backup
+    become: true
+    ansible.builtin.copy:
+      src: config/micro/settings.json
+      dest: /root/.config/micro/settings.json
+      backup: yes
+  - name: Copy fish functions
+    ansible.builtin.copy:
+      src: config/fish/functions/
+      dest: '/home/{{ ansible_user }}/.config/fish/functions/'
+  - name: Copy fish config
+    ansible.builtin.blockinfile:
+      path: '/home/{{ ansible_user }}/.config/fish/config.fish'
+      append_newline: true
+      prepend_newline: true
+      backup: yes
+      marker: "# {mark} WSL FISH CONFIG ANSIBLE MANAGED BLOCK"
+      block: |
+        if status is-interactive
+            set -gx DISPLAY (cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
+            set -gx MICRO_TRUECOLOR 1
+            set -gx LANG fr_CA.UTF-8
+            set -gx FZF_DEFAULT_COMMAND "fd --type file --color=always"
+            set -gx FZF_DEFAULT_OPTS "--ansi"
+            set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
+            set -gx LMOD_COLORIZE YES
+            set -gx EDITOR /usr/bin/micro
+            set -gx PAGER /usr/bin/most
+            set -gx MOST_EDITOR "micro +%d:1 %s"
+            set -gx SLANG_EDITOR "micro +%d:1 %s"
+            set -gx GPG_TTY (tty)
+
+            fish_add_path $HOME/.cargo/bin
+
+            zoxide init fish | source
+            starship init fish | source
+        end
+  - name: Install fisher
+    ansible.builtin.shell: curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+    args:
+      executable: /usr/bin/fish
+  - name: Install fisher packages
+    ansible.builtin.shell: fisher install PatrickF1/fzf.fish
+    args:
+      executable: /usr/bin/fish
+  - name: Create Nushell default environment
+    ansible.builtin.get_url:
+      url: https://github.com/nushell/nushell/blob/main/crates/nu-utils/src/sample_config/default_env.nu
+      dest: '/home/{{ ansible_user }}/.config/micro/nushell/env.nu'
+      backup: yes
+  - name: Create Nushell default config
+    ansible.builtin.get_url:
+      url: https://github.com/nushell/nushell/blob/main/crates/nu-utils/src/sample_config/default_config.nu
+      dest: '/home/{{ ansible_user }}/.config/micro/nushell/config.nu'
+      backup: yes
+  - name: Create Nushell starship config
+    ansible.builtin.copy:
+      dest: '/home/{{ ansible_user }}/.config/nushell/starship.nu'
+      backup: yes
+      content: |
+        mkdir ~/.cache/starship
+        starship init nu | save -f ~/.cache/starship/init.nu
+  - name: Create Nushell zoxide config
+    ansible.builtin.copy:
+      dest: '/home/{{ ansible_user }}/.config/nushell/zoxide.nu'
+      backup: yes
+      content: |
+        mkdir ~/.cache/zoxide
+        zoxide init nushell | save -f ~/.cache/zoxide/init.nu
+  - name: Add Nushell starship and zoxide env
+    ansible.builtin.blockinfile:
+      path: '/home/{{ ansible_user }}/.config/nushell/env.nu'
+      append_newline: true
+      prepent_newline: true
+      backup: yes
+      marker: "# {mark} WSL NUSHELL ENV ANSIBLE MANAGED BLOCK"
+      block: |
+        source ($nu.default-config-dir | path join 'starship.nu')
+        source ($nu.default-config-dir | path join 'zoxide.nu')
+  - name: Add Nushell starship and zoxide config
+    ansible.builtin.blockinfile:
+      path: '/home/{{ ansible_user }}/.config/nushell/config.nu'
+      append_newline: true
+      prepent_newline: true
+      backup: yes
+      marker: "# {mark} WSL NUSHELL CONFIG ANSIBLE MANAGED BLOCK"
+      block: |
+        alias http = ^http
+        
+        use ~/.cache/starship/init.nu
+        source ~/.cache/zoxide/init.nu
+  - name: Add Nushell to system shells
+    become: yes
+    ansible.builtin.lineinfile:
+      path: /etc/shells
+      line: /usr/bin/nu
+      state: present
+  - name: Add Nushell to system shells
+    become: yes
+    ansible.builtin.lineinfile:
+      path: /etc/shells
+      line: /bin/nu
+      state: present
+      insertafter: /usr/bin/nu
+  - name: Change shell to nushell
+      become: true
+      ansible.builtin.user:
+        name: '{{ ansible_user }}'
+        shell: /usr/bin/nu

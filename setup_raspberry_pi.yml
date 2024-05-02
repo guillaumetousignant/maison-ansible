@@ -2,50 +2,7 @@
   hosts: raspberry_pi
 
   tasks:
-  - name: Install a list of packages
-    become: true
-    ansible.builtin.apt:
-      pkg:
-        - bat
-        - cowsay
-        - cowsay-off
-        - curl
-        - fbterm
-        - fd-find
-        - fish
-        - fonts-firacode
-        - fortune-anarchism
-        - fortune-mod
-        - fortunes-bofh-excuses
-        - fortunes-debian-hints
-        - fortunes
-        - fzf
-        - gpg
-        - htop
-        - httpie
-        - iperf3
-        - lolcat
-        - micro
-        - most
-        - ncdu
-        - neofetch
-        - ranger
-        - ripgrep
-        - rsync
-        - screenfetch
-        - sl
-        - thefuck
-        - tldr
-        - tmux
-        - tree
-        - zoxide
-      update_cache: yes
-      
-  - name: Install Starship
-    become: true
-    ansible.builtin.shell: curl -sS https://starship.rs/install.sh | sh -s -- --yes
-
-  - name: Install eza
+  - name: Install eza repository
     block:
       - name: Create keyring directory
         become: true
@@ -66,24 +23,64 @@
           repo: "deb [signed-by=/etc/apt/keyrings/gierens.asc] http://deb.gierens.de stable main"
           state: present
           filename: gierens
-      - name: Install eza package
-        become: true
-        ansible.builtin.apt:
-          pkg: 
-            - eza
-          update_cache: yes
+  - name: Install a list of packages
+    become: true
+    ansible.builtin.apt:
+      pkg:
+        - bat
+        - cowsay
+        - cowsay-off
+        - curl
+        - eza
+        - fbterm
+        - fd-find
+        - fish
+        - fonts-firacode
+        - fortune-anarchism
+        - fortune-mod
+        - fortunes-bofh-excuses
+        - fortunes-debian-hints
+        - fortunes
+        - fzf
+        - gpg
+        - htop
+        - httpie
+        - iperf3
+        - lolcat
+        - micro
+        - most
+        - ncdu
+        - python3-virtualenv
+        - ranger
+        - ripgrep
+        - rsync
+        - screenfetch
+        - sl
+        - thefuck
+        - tldr
+        - tmux
+        - tree
+        - zoxide
+      update_cache: yes
+  - name: Install Starship
+    become: true
+    ansible.builtin.shell: curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
-- name: Install Raspberry Pi OS packages
-  hosts: raspberry_pi_os
+- name: Install Raspberry Pi 64 bits packages
+  hosts: raspberry_pi_64
 
   tasks:
   - name: Install bottom
     become: true
     ansible.builtin.apt:
       deb: https://github.com/ClementTsang/bottom/releases/download/0.9.6/bottom_0.9.6_arm64.deb
+  - name: Install fastfetch
+    become: true
+    ansible.builtin.apt:
+      deb: https://github.com/fastfetch-cli/fastfetch/releases/download/2.11.0/fastfetch-linux-aarch64.deb
 
-- name: Install Raspbian packages
-  hosts: raspbian
+- name: Install Raspberry Pi 32 bits packages
+  hosts: raspberry_pi_32
 
   tasks:
   - name: Install bottom
@@ -98,11 +95,11 @@
   - name: Copy micro syntax
     ansible.builtin.copy:
       src: config/micro/syntax/
-      dest: /home/pi/.config/micro/syntax/
+      dest: '/home/{{ ansible_user }}/.config/micro/syntax/'
   - name: Copy micro settings with backup
     ansible.builtin.copy:
       src: config/micro/settings.json
-      dest: /home/pi/.config/micro/settings.json
+      dest: '/home/{{ ansible_user }}/.config/micro/settings.json'
       backup: yes
   - name: Copy root micro syntax
     become: true
@@ -118,10 +115,10 @@
   - name: Copy fish functions
     ansible.builtin.copy:
       src: config/fish/functions/
-      dest: /home/pi/.config/fish/functions/
+      dest: '/home/{{ ansible_user }}/.config/fish/functions/'
   - name: Copy fish config
     ansible.builtin.blockinfile:
-      path: /home/pi/.config/fish/config.fish
+      path: '/home/{{ ansible_user }}/.config/fish/config.fish'
       append_newline: true
       backup: yes
       create: true
@@ -151,5 +148,5 @@
   - name: Change shell to fish
     become: true
     ansible.builtin.user:
-      name: pi
+      name: '{{ ansible_user }}'
       shell: /usr/bin/fish

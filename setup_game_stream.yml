@@ -4,7 +4,7 @@
   tasks:
   - name: Copy fish config
     ansible.builtin.blockinfile:
-      path: /home/pi/.config/fish/config.fish
+      path: '/home/{{ ansible_user }}/.config/fish/config.fish'
       append_newline: true
       backup: yes
       create: true
@@ -22,7 +22,7 @@
   tasks:
   - name: Copy Moonlight Embedded config
     ansible.builtin.copy:
-      dest: /home/pi/moonlight.cfg
+      dest: '/home/{{ ansible_user }}/moonlight.cfg'
       backup: yes
       content: |
         bitrate = {{ bitrate }}
@@ -30,7 +30,7 @@
         app = Steam Big Picture
   - name: Copy Moonlight Qt config
     ansible.builtin.copy:
-      dest: /home/pi/moonlight-qt.service
+      dest: '/home/{{ ansible_user }}/moonlight-qt.service'
       backup: yes
       content: |
         [Unit]
@@ -46,12 +46,10 @@
         Environment="QT_QPA_EGLFS_ALWAYS_SET_MODE=1"
         ExecStart=/usr/bin/moonlight-qt
         Restart=on-failure
-        User=pi
+        User={{ ansible_user }}
         
         [Install]
         WantedBy=multi-user.target
-
-
 
 - name: Package installation
   hosts: game_stream
@@ -99,7 +97,7 @@
   - name: Symlink Moonlight Qt service
     become: true
     ansible.builtin.file:
-      src: /home/pi/moonlight-qt.service
+      src: '/home/{{ ansible_user }}/moonlight-qt.service'
       dest: /etc/systemd/system/moonlight-qt.service
       state: link
   - name: Enable Moonlight Qt
@@ -156,5 +154,5 @@
 
 # RPI5 install pipewire
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
-# RPI5 add set -gx QT_QPA_EGLFS_KMS_CONFIG "/home/pi/eglfs.json" to fish config and service file
+# RPI5 add set -gx QT_QPA_EGLFS_KMS_CONFIG "/home/{{ ansible_user }}/eglfs.json" to fish config and service file
 # RPI5 add { "device": "/dev/dri/card1" } to eglfs.json

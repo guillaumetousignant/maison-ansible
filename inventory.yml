@@ -1,22 +1,21 @@
-raspbian:
+raspberry_pi_32:
   hosts:
     oldpi.lan:
-raspberry_pi_os:
+raspberry_pi_64:
   hosts:
     pihole.lan:
     steamlink.lan:
     steamlinkproj.lan:
 raspberry_pi:
   children:
-    raspbian:
-    raspberry_pi_os:
+    raspberry_pi_32:
+    raspberry_pi_64:
 moonlight:
   hosts:
     steamlink.lan:
     steamlinkproj.lan:
 steamlink:
   hosts:
-    steamlinkproj.lan:
 game_stream:
   children:
     moonlight:

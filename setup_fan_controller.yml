@@ -17,12 +17,12 @@
   tasks:
   - name: Create fonts directory
     ansible.builtin.file:
-      path: /home/pi/Fonts
+      path: '/home/{{ ansible_user }}/Fonts'
       state: directory
   - name: Download and untar scientifica font
     ansible.builtin.unarchive:
       src: https://github.com/nerdypepper/scientifica/releases/download/v2.3/scientifica.tar
-      dest: /home/pi/Fonts
+      dest: '/home/{{ ansible_user }}/Fonts'
       remote_src: yes
 
 - name: Clone Fan Controller
@@ -32,7 +32,7 @@
   - name: Clone Fan Controller repo
     ansible.builtin.git:
       repo: 'https://github.com/guillaumetousignant/fan_controller.git'
-      dest: /home/pi/Code/fan_controller
+      dest: '/home/{{ ansible_user }}/Code/fan_controller'
 
 - name: Install Fan Controller dependencies
   hosts: fan_controller
@@ -40,7 +40,7 @@
   tasks:
   - name: Install pip dependencies
     ansible.builtin.pip:
-      requirements: /home/pi/Code/fan_controller/requirements.txt
+      requirements: '/home/{{ ansible_user }}/Code/fan_controller/requirements.txt'
 
 - name: Configuration
   hosts: fan_controller
@@ -54,13 +54,13 @@
       line: 'ExecStart=/usr/bin/pigpiod -l -s 1'
   - name: Write password file
     ansible.builtin.copy:
-      dest: /home/pi/Code/fan_controller/.password
+      dest: '/home/{{ ansible_user }}/Code/fan_controller/.password'
       mode: '0600'
       content: |
         {{ message_broker_password }}
   - name: Create Fan Controller service
     ansible.builtin.copy:
-      dest: /home/pi/fan_controller.service
+      dest: '/home/{{ ansible_user }}/fan_controller.service'
       backup: yes
       content: |
         [Unit]
@@ -71,8 +71,8 @@
         Type=simple
         Restart=always
         RestartSec=2
-        User=pi
-        ExecStart=/usr/bin/python3 /home/pi/Code/fan_controller/fan_controller.py --min 10 --font /home/pi/Fonts/scientifica/ttf/scientifica.ttf --broker {{ message_broker_address }} --client-id {{ client_id }} --password-file /home/pi/Code/fan_controller/.password
+        User={{ ansible_user }}
+        ExecStart=/usr/bin/python3 /home/{{ ansible_user }}/Code/fan_controller/fan_controller.py --min 10 --font /home/{{ ansible_user }}/Fonts/scientifica/ttf/scientifica.ttf --broker {{ message_broker_address }} --client-id {{ client_id }} --password-file /home/{{ ansible_user }}/Code/fan_controller/.password
         [Install]
         WantedBy=multi-user.target
 
@@ -99,7 +99,7 @@
   - name: Symlink Fan Controller service
     become: true
     ansible.builtin.file:
-      src: /home/pi/fan_controller.service
+      src: '/home/{{ ansible_user }}/fan_controller.service'
       dest: /lib/systemd/system/fan_controller.service
       state: link
   - name: Enable Fan Controller

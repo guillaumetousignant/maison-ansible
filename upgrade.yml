@@ -41,11 +41,11 @@
   - name: Upgrade Pi-hole executable
     ansible.builtin.shell: pihole -up
 
-- name: Update Fan COntroller
+- name: Update Fan Controller
   hosts: fan_controller
 
   tasks:
   - name: Clone Fan Controller repo
     ansible.builtin.git:
       repo: 'https://github.com/guillaumetousignant/fan_controller.git'
-      dest: /home/pi/Code/fan_controller
+      dest: '/home/{{ ansible_user }}/Code/fan_controller'
