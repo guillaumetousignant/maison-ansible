@@ -28,7 +28,7 @@
         bitrate = {{ bitrate }}
         packetsize = 1392
         app = Steam Big Picture
-  - name: Copy Moonlight Qt config
+  - name: Copy Moonlight Qt service
     ansible.builtin.copy:
       dest: '/home/{{ ansible_user }}/moonlight-qt.service'
       backup: yes
@@ -48,6 +48,24 @@
         Restart=on-failure
         User={{ ansible_user }}
         
+        [Install]
+        WantedBy=multi-user.target
+  - name: Copy Moonlight Embedded service
+    ansible.builtin.copy:
+      dest: '/home/{{ ansible_user }}/moonlight-embedded.service'
+      backup: yes
+      content: |
+        [Unit]
+        Description=Moonlight Embedded
+        After=network.target
+        After=multi-user.target
+
+        [Service]
+        Type=simple
+        ExecStart=/usr/bin/moonlight /home/{{ ansible_user }}/moonlight.cfg
+        Restart=on-failure
+        User={{ ansible_user }}
+
         [Install]
         WantedBy=multi-user.target
 
@@ -99,6 +117,12 @@
     ansible.builtin.file:
       src: '/home/{{ ansible_user }}/moonlight-qt.service'
       dest: /etc/systemd/system/moonlight-qt.service
+      state: link
+  - name: Symlink Moonlight Embedded service
+    become: true
+    ansible.builtin.file:
+      src: '/home/{{ ansible_user }}/moonlight-embedded.service'
+      dest: /etc/systemd/system/moonlight-embedded.service
       state: link
   - name: Enable Moonlight Qt
     become: true
