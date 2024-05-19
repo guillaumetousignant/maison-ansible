@@ -180,6 +180,7 @@
       marker: "# {mark} WSL NUSHELL CONFIG ANSIBLE MANAGED BLOCK"
       block: |
         alias http = ^http
+        $env.GPG_TTY = (tty)
         
         use ~/.cache/starship/init.nu
         source ~/.cache/zoxide/init.nu
