@@ -15,6 +15,7 @@
         set -gx QT_QPA_EGLFS_PHYSICAL_HEIGHT {{ screen_height }}
         set -gx QT_QPA_PLATFORM "EGLFS"
         set -gx QT_QPA_EGLFS_ALWAYS_SET_MODE 1
+        set -gx QT_QPA_EGLFS_KMS_CONFIG "/home/{{ ansible_user }}/eglfs.json"
 
 - name: Moonlight Configuration
   hosts: moonlight
@@ -44,6 +45,7 @@
         Environment="QT_QPA_EGLFS_PHYSICAL_HEIGHT={{ screen_height }}"
         Environment="QT_QPA_PLATFORM=EGLFS"
         Environment="QT_QPA_EGLFS_ALWAYS_SET_MODE=1"
+        Environment="QT_QPA_EGLFS_KMS_CONFIG='/home/{{ ansible_user }}/eglfs.json'"
         ExecStart=/usr/bin/moonlight-qt
         Restart=on-failure
         User={{ ansible_user }}
@@ -68,12 +70,18 @@
 
         [Install]
         WantedBy=multi-user.target
+  - name: Copy Moonlight Qt eglfs settings
+    ansible.builtin.copy:
+      dest: '/home/{{ ansible_user }}/eglfs.json'
+      backup: yes
+      content: |
+        { "device": "/dev/dri/card1" }
 
 - name: Package installation
   hosts: game_stream
 
   tasks:
-  - name: Install Wireguard, remmina, and libcec
+  - name: Install Wireguard, remmina, libcec, and pipewire
     become: true
     ansible.builtin.apt:
       update_cache: yes
@@ -82,6 +90,7 @@
         - libcec6
         - libcec-dev
         - wireguard
+        - pipewire
 
 - name: Steam link installation
   hosts: steamlink
@@ -176,7 +185,5 @@
             # after ifdown, destroy the wg0 interface
             post-down ip link del $IFACE
 
-# RPI5 install pipewire
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
-# RPI5 add set -gx QT_QPA_EGLFS_KMS_CONFIG "/home/{{ ansible_user }}/eglfs.json" to fish config and service file
-# RPI5 add { "device": "/dev/dri/card1" } to eglfs.json
+# Maybe make user services?
