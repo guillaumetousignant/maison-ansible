@@ -29,6 +29,10 @@
         bitrate = {{ bitrate }}
         packetsize = 1392
         app = Steam Big Picture
+  - name: Create systemd user directory
+    ansible.builtin.file:
+      path: '/home/{{ ansible_user }}/.config/systemd/user'
+      state: directory
   - name: Copy Moonlight Qt service
     ansible.builtin.copy:
       dest: '/home/{{ ansible_user }}/moonlight-qt.service'
@@ -37,7 +41,7 @@
         [Unit]
         Description=Moonlight PC
         After=network.target
-        After=multi-user.target
+        After=sound.target
         
         [Service]
         Type=simple
@@ -48,10 +52,9 @@
         Environment="QT_QPA_EGLFS_KMS_CONFIG='/home/{{ ansible_user }}/eglfs.json'"
         ExecStart=/usr/bin/moonlight-qt
         Restart=on-failure
-        User={{ ansible_user }}
         
         [Install]
-        WantedBy=multi-user.target
+        WantedBy=default.target
   - name: Copy Moonlight Embedded service
     ansible.builtin.copy:
       dest: '/home/{{ ansible_user }}/moonlight-embedded.service'
@@ -60,16 +63,14 @@
         [Unit]
         Description=Moonlight Embedded
         After=network.target
-        After=multi-user.target
 
         [Service]
         Type=simple
         ExecStart=/usr/bin/moonlight /home/{{ ansible_user }}/moonlight.cfg
         Restart=on-failure
-        User={{ ansible_user }}
 
         [Install]
-        WantedBy=multi-user.target
+        WantedBy=default.target
   - name: Copy Moonlight Qt eglfs settings
     ansible.builtin.copy:
       dest: '/home/{{ ansible_user }}/eglfs.json'
@@ -122,27 +123,25 @@
 
   tasks:
   - name: Symlink Moonlight Qt service
-    become: true
     ansible.builtin.file:
       src: '/home/{{ ansible_user }}/moonlight-qt.service'
-      dest: /etc/systemd/system/moonlight-qt.service
+      dest: '/home/{{ ansible_user }}/.config/systemd/user/moonlight-qt.service'
       state: link
   - name: Symlink Moonlight Embedded service
-    become: true
     ansible.builtin.file:
       src: '/home/{{ ansible_user }}/moonlight-embedded.service'
-      dest: /etc/systemd/system/moonlight-embedded.service
+      dest:  '/home/{{ ansible_user }}/.config/systemd/user/moonlight-embedded.service'
       state: link
   - name: Enable Moonlight Qt
-    become: true
     ansible.builtin.systemd_service:
       name: moonlight-qt
+      scope: user
       enabled: true
       masked: no
-  - name: Start Moonblight Qt
-    become: true
+  - name: Start Moonlight Qt
     ansible.builtin.systemd_service:
       name: moonlight-qt
+      scope: user
       state: started
 
 - name: Wireguard setup
