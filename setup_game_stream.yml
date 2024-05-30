@@ -135,6 +135,10 @@
   hosts: moonlight
 
   tasks:
+  - name: Enable console auto login
+    become: true
+    ansible.builtin.command: raspi-config nonint do_boot_behaviour B2
+    creates: /etc/systemd/system/getty@tty1.service.d/autologin.conf
   - name: Symlink Moonlight Qt service
     ansible.builtin.file:
       src: '/home/{{ ansible_user }}/moonlight-qt.service'
@@ -200,4 +204,3 @@
             post-down ip link del $IFACE
 
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
-# pi user autologin
