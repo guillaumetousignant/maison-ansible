@@ -81,8 +81,9 @@
     become: true
     ansible.builtin.lineinfile:
       path: /boot/firmware/config.txt
-      regexp: '^dtoverlay=vc4-kms-v3d'
+      regexp: '^dtoverlay=vc4-f?kms-v3d'
       line: dtoverlay=vc4-fkms-v3d
+      backup: yes
 
 - name: Package installation
   hosts: game_stream
