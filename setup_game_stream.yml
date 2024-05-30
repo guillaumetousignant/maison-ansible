@@ -151,11 +151,13 @@
       scope: user
       enabled: true
       masked: no
+    when: autostart_moonlight_qt
   - name: Start Moonlight Qt
     ansible.builtin.systemd_service:
       name: moonlight-qt
       scope: user
       state: started
+    when: autostart_moonlight_qt
 
 - name: Wireguard setup
   hosts: game_stream
@@ -199,4 +201,3 @@
 
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
 # pi user autologin
-# steamlinkproj shouldn't autostart moonlight-qt

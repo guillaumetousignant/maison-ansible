@@ -2,6 +2,7 @@
 screen_width: 654
 screen_height: 368
 bitrate: 40000
+autostart_moonlight_qt: false
 wireguard_ip: "{{ vault_wireguard_ip }}"
 wireguard_public_key: "{{ vault_wireguard_public_key }}"
 wireguard_private_key: "{{ vault_wireguard_private_key }}"
