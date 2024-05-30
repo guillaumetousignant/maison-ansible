@@ -1,6 +1,6 @@
 ---
-screen_width: 2616
-screen_height: 1472
+screen_width: 654
+screen_height: 368
 bitrate: 40000
 wireguard_ip: "{{ vault_wireguard_ip }}"
 wireguard_public_key: "{{ vault_wireguard_public_key }}"
