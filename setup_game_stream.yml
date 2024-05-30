@@ -77,6 +77,12 @@
       backup: yes
       content: |
         { "device": "/dev/dri/card1" }
+  - name: Use fkms display driver
+    become: true
+    ansible.builtin.lineinfile:
+      path: /boot/firmware/config.txt
+      regexp: '^dtoverlay=vc4-kms-v3d'
+      line: dtoverlay=vc4-fkms-v3d
 
 - name: Package installation
   hosts: game_stream
@@ -185,3 +191,4 @@
             post-down ip link del $IFACE
 
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
+# pi user autologin
