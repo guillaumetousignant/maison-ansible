@@ -84,6 +84,12 @@
       regexp: '^dtoverlay=vc4-f?kms-v3d'
       line: dtoverlay=vc4-fkms-v3d
       backup: yes
+    notify:
+      - Reboot
+  handlers:
+  - name: Reboot
+    become: true
+    ansible.builtin.reboot:
 
 - name: Package installation
   hosts: game_stream
