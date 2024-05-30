@@ -193,3 +193,4 @@
 
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
 # pi user autologin
+# steamlinkproj shouldn't autostart moonlight-qt
