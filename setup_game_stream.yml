@@ -76,7 +76,7 @@
       dest: '/home/{{ ansible_user }}/eglfs.json'
       backup: yes
       content: |
-        { "device": "/dev/dri/card1" }
+        { "device": "/dev/dri/{{ dri_card }}" }
   - name: Use fkms display driver
     become: true
     ansible.builtin.lineinfile:
@@ -202,6 +202,3 @@
         
             # after ifdown, destroy the wg0 interface
             post-down ip link del $IFACE
-
-# RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
-# steamlinkproj should have card0
