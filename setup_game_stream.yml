@@ -204,3 +204,4 @@
             post-down ip link del $IFACE
 
 # RPI5 pipewire doesn't work on boot, needs restarting moonlight-qt
+# steamlinkproj should have card0
