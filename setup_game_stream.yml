@@ -77,6 +77,11 @@
       backup: yes
       content: |
         { "device": "/dev/dri/{{ dri_card }}" }
+
+- name: Change display driver
+  hosts: steamlink
+
+  tasks:
   - name: Use fkms display driver
     become: true
     ansible.builtin.lineinfile:
@@ -138,7 +143,8 @@
   - name: Enable console auto login
     become: true
     ansible.builtin.command: raspi-config nonint do_boot_behaviour B2
-    creates: /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    args:
+      creates: /etc/systemd/system/getty@tty1.service.d/autologin.conf
   - name: Symlink Moonlight Qt service
     ansible.builtin.file:
       src: '/home/{{ ansible_user }}/moonlight-qt.service'
