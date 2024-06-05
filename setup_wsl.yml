@@ -180,7 +180,21 @@
       marker: "# {mark} WSL NUSHELL CONFIG ANSIBLE MANAGED BLOCK"
       block: |
         alias http = ^http
+
+        $env.DISPLAY = (cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}') + ":0.0"
+        $env.MICRO_TRUECOLOR = 1
+        $env.LANG = "fr_CA.UTF-8"
+        $env.FZF_DEFAULT_COMMAND = "fd --type file --color=always"
+        $env.FZF_DEFAULT_OPTS = "--ansi"
+        $env.FZF_CTRL_T_COMMAND = "$FZF_DEFAULT_COMMAND"
+        $env.LMOD_COLORIZE = "YES"
+        $env.EDITOR = /usr/bin/micro
+        $env.PAGER = /usr/bin/most
+        $env.MOST_EDITOR = "micro +%d:1 %s"
+        $env.SLANG_EDITOR = "micro +%d:1 %s"
         $env.GPG_TTY = (tty)
+
+        $env.PATH = ($env.PATH | split row (char esep) | prepend "/home/guillaume/.cargo/bin" | prepend "/home/guillaume/.local/bin")
         
         use ~/.cache/starship/init.nu
         source ~/.cache/zoxide/init.nu
