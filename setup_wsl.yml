@@ -147,6 +147,12 @@
       url: https://github.com/nushell/nushell/blob/main/crates/nu-utils/src/sample_config/default_config.nu
       dest: '/home/{{ ansible_user }}/.config/micro/nushell/config.nu'
       backup: yes
+  - name: Disable Nushell banner
+    ansible.builtin.lineinfile:
+      path: '/home/{{ ansible_user }}/.config/micro/nushell/config.nu'
+      regexp: '^(\s*)show_banner: (?:true|false)(.*)'
+      backrefs: yes
+      line: '\1show_banner: false\3'
   - name: Create Nushell starship config
     ansible.builtin.copy:
       dest: '/home/{{ ansible_user }}/.config/nushell/starship.nu'
@@ -169,18 +175,6 @@
       backup: yes
       marker: "# {mark} WSL NUSHELL ENV ANSIBLE MANAGED BLOCK"
       block: |
-        source ($nu.default-config-dir | path join 'starship.nu')
-        source ($nu.default-config-dir | path join 'zoxide.nu')
-  - name: Add Nushell starship and zoxide config
-    ansible.builtin.blockinfile:
-      path: '/home/{{ ansible_user }}/.config/nushell/config.nu'
-      append_newline: true
-      prepent_newline: true
-      backup: yes
-      marker: "# {mark} WSL NUSHELL CONFIG ANSIBLE MANAGED BLOCK"
-      block: |
-        alias http = ^http
-
         $env.DISPLAY = (cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}') + ":0.0"
         $env.MICRO_TRUECOLOR = 1
         $env.LANG = "fr_CA.UTF-8"
@@ -194,8 +188,34 @@
         $env.SLANG_EDITOR = "micro +%d:1 %s"
         $env.GPG_TTY = (tty)
 
-        $env.PATH = ($env.PATH | split row (char esep) | prepend "/home/guillaume/.cargo/bin" | prepend "/home/guillaume/.local/bin")
-        
+        $env.PATH = ($env.PATH | split row (char esep) 
+          | prepend ($env.HOME | path join .cargo bin) 
+          | prepend ($env.HOME | path join .local bin)
+          | uniq)
+
+        source ($nu.default-config-dir | path join 'starship.nu')
+        source ($nu.default-config-dir | path join 'zoxide.nu')
+  - name: Add Nushell starship and zoxide config
+    ansible.builtin.blockinfile:
+      path: '/home/{{ ansible_user }}/.config/nushell/config.nu'
+      append_newline: true
+      prepent_newline: true
+      backup: yes
+      marker: "# {mark} WSL NUSHELL CONFIG ANSIBLE MANAGED BLOCK"
+      block: |
+        alias http = ^http
+        alias please = sudo
+        alias fuck = thefuck $"(history | last 1 | get command | get 0)"
+        alias sorry = sudo ...(history | last | get command | split row " ")
+
+        # Create a directory and move to it
+        def --env mkcd [
+          directory: path  # Directory to create and move to
+        ] {
+          mkdir $directory
+          cd $directory
+        }
+
         use ~/.cache/starship/init.nu
         source ~/.cache/zoxide/init.nu
   - name: Add Nushell to system shells
