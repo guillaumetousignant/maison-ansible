@@ -10,6 +10,7 @@
         - git
         - pigpiod
         - python3-pip
+        - python3-virtualenv
 
 - name: Download font
   hosts: fan_controller
@@ -39,8 +40,10 @@
 
   tasks:
   - name: Install pip dependencies
+    become: yes
     ansible.builtin.pip:
       requirements: '/home/{{ ansible_user }}/Code/fan_controller/requirements.txt'
+      virtualenv: '/home/{{ ansible_user }}/Code/fan_controller/env'
 
 - name: Configuration
   hosts: fan_controller
@@ -72,7 +75,7 @@
         Restart=always
         RestartSec=2
         User={{ ansible_user }}
-        ExecStart=/usr/bin/python3 /home/{{ ansible_user }}/Code/fan_controller/fan_controller.py --min 10 --font /home/{{ ansible_user }}/Fonts/scientifica/ttf/scientifica.ttf --broker {{ message_broker_address }} --client-id {{ client_id }} --password-file /home/{{ ansible_user }}/Code/fan_controller/.password
+        ExecStart=/home/{{ ansible_user }}/Code/fan_controller/env/bin/python /home/{{ ansible_user }}/Code/fan_controller/fan_controller.py --min 10 --font /home/{{ ansible_user }}/Fonts/scientifica/ttf/scientifica.ttf --broker {{ message_broker_address }} --client-id {{ client_id }} --password-file /home/{{ ansible_user }}/Code/fan_controller/.password
         [Install]
         WantedBy=multi-user.target
 
