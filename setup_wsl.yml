@@ -118,8 +118,8 @@
             set -gx FZF_DEFAULT_OPTS "--ansi"
             set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
             set -gx LMOD_COLORIZE YES
-            set -gx EDITOR /usr/bin/micro
-            set -gx PAGER /usr/bin/most
+            set -gx EDITOR "/usr/bin/micro"
+            set -gx PAGER "/usr/bin/most"
             set -gx MOST_EDITOR "micro +%d:1 %s"
             set -gx SLANG_EDITOR "micro +%d:1 %s"
             set -gx GPG_TTY (tty)
