@@ -49,7 +49,7 @@
         Environment="QT_QPA_EGLFS_PHYSICAL_HEIGHT={{ screen_height }}"
         Environment="QT_QPA_PLATFORM=EGLFS"
         Environment="QT_QPA_EGLFS_ALWAYS_SET_MODE=1"
-        Environment="QT_QPA_EGLFS_KMS_CONFIG='/home/{{ ansible_user }}/eglfs.json'"
+        Environment="QT_QPA_EGLFS_KMS_CONFIG=/home/{{ ansible_user }}/eglfs.json"
         ExecStart=/usr/bin/moonlight-qt
         Restart=on-failure
         
