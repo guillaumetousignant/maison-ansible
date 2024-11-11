@@ -137,22 +137,6 @@
     ansible.builtin.shell: fisher install PatrickF1/fzf.fish
     args:
       executable: /usr/bin/fish
-  - name: Create Nushell default environment
-    ansible.builtin.get_url:
-      url: https://github.com/nushell/nushell/blob/main/crates/nu-utils/src/sample_config/default_env.nu
-      dest: '/home/{{ ansible_user }}/.config/micro/nushell/env.nu'
-      backup: yes
-  - name: Create Nushell default config
-    ansible.builtin.get_url:
-      url: https://github.com/nushell/nushell/blob/main/crates/nu-utils/src/sample_config/default_config.nu
-      dest: '/home/{{ ansible_user }}/.config/micro/nushell/config.nu'
-      backup: yes
-  - name: Disable Nushell banner
-    ansible.builtin.lineinfile:
-      path: '/home/{{ ansible_user }}/.config/micro/nushell/config.nu'
-      regexp: '^(\s*)show_banner: (?:true|false)(.*)'
-      backrefs: yes
-      line: '\1show_banner: false\3'
   - name: Create Nushell starship config
     ansible.builtin.copy:
       dest: '/home/{{ ansible_user }}/.config/nushell/starship.nu'
@@ -167,7 +151,7 @@
       content: |
         mkdir ~/.cache/zoxide
         zoxide init nushell | save -f ~/.cache/zoxide/init.nu
-  - name: Add Nushell starship and zoxide env
+  - name: Setup Nushell env
     ansible.builtin.blockinfile:
       path: '/home/{{ ansible_user }}/.config/nushell/env.nu'
       append_newline: true
@@ -182,8 +166,8 @@
         $env.FZF_DEFAULT_OPTS = "--ansi"
         $env.FZF_CTRL_T_COMMAND = "$FZF_DEFAULT_COMMAND"
         $env.LMOD_COLORIZE = "YES"
-        $env.EDITOR = /usr/bin/micro
-        $env.PAGER = /usr/bin/most
+        $env.EDITOR = "/usr/bin/micro"
+        $env.PAGER = "/usr/bin/most"
         $env.MOST_EDITOR = "micro +%d:1 %s"
         $env.SLANG_EDITOR = "micro +%d:1 %s"
         $env.GPG_TTY = (tty)
@@ -195,7 +179,7 @@
 
         source ($nu.default-config-dir | path join 'starship.nu')
         source ($nu.default-config-dir | path join 'zoxide.nu')
-  - name: Add Nushell starship and zoxide config
+  - name: Setup Nushell config
     ansible.builtin.blockinfile:
       path: '/home/{{ ansible_user }}/.config/nushell/config.nu'
       append_newline: true
@@ -203,6 +187,15 @@
       backup: yes
       marker: "# {mark} WSL NUSHELL CONFIG ANSIBLE MANAGED BLOCK"
       block: |
+        $env.config = {
+            show_banner: false
+        
+            history: {
+            	file_format: "sqlite"
+            	isolation: true
+            }
+        }
+        
         alias http = ^http
         alias please = sudo
         alias fuck = thefuck $"(history | last 1 | get command | get 0)"
