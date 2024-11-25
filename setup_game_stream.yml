@@ -110,6 +110,7 @@
         - libcec-dev
         - wireguard
         - pipewire
+        - pamixer
 
 - name: Steam link installation
   hosts: steamlink
