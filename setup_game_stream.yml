@@ -106,7 +106,7 @@
       update_cache: yes
       pkg:
         - remmina
-        - libcec6
+        - libcec7
         - libcec-dev
         - wireguard
         - pipewire
@@ -189,6 +189,11 @@
         PublicKey = {{ wireguard_server_public_key }}
         AllowedIPs = 0.0.0.0/0
         Endpoint = {{ wireguard_server }}
+  - name: Create interfaces directory
+    become: true
+    ansible.builtin.file:
+      path: /etc/network/interfaces.d
+      state: directory
   - name: Wireguard interface
     become: true
     ansible.builtin.copy:
