@@ -15,7 +15,6 @@
 - name: Upgrade Fisher packages
   hosts: 
   - raspberry_pi
-  - container_hosts
 
   tasks:
   - name: Upgrade all fisher packages
@@ -39,6 +38,7 @@
 
   tasks:
   - name: Upgrade Pi-hole executable
+    become: true
     ansible.builtin.shell: pihole -up
 
 - name: Update Fan Controller

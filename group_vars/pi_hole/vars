@@ -1,0 +1,4 @@
+---
+subnet_size: "{{ vault_subnet_size }}"
+gateway: "{{ vault_gateway }}"
+dns_servers: "{{ vault_dns_servers }}"

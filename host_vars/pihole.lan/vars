@@ -1,0 +1,3 @@
+---
+connection_name: "{{ vault_connection_name }}"
+static_ip_address: "{{ vault_static_ip_address }}"

@@ -1,3 +1,27 @@
+- name: Set static IP address
+  hosts: pi_hole
+
+  tasks:
+  - name: Change connection
+    become: true
+    ansible.builtin.shell: nmcli con mod "{{ connection_name }}" ipv4.addresses "{{ static_ip_address }}"/"{{ subnet_size }}" ipv4.method manual ipv4.gateway "{{ gateway }}" ipv4.dns "{{ dns_servers }}"
+  - name: Restart connection
+    become: true
+    ansible.builtin.shell: nmcli con down "{{ connection_name }}" && nmcli con up "{{ connection_name }}"
+    async: 100
+    poll: 0
+  - name: Change IP address of host
+    set_fact:
+      ansible_host: "{{ static_ip_address }}"
+  - name: Wait for the interface to come back up
+    local_action:
+      module: wait_for
+      host: "{{ ansible_host }}"
+      port: 22
+      delay: 10
+      state: started
+    register: wait_result
+
 - name: Install Pi-hole
   hosts: pi_hole
 
@@ -12,23 +36,6 @@
   hosts: pi_hole
 
   tasks:
-  - name: Install keyring utilities
-    become: true
-    ansible.builtin.apt:
-      update_cache: yes
-      pkg:
-        - debian-keyring
-        - debian-archive-keyring
-        - apt-transport-https
-        - curl
-  - name: Install Caddy key
-    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-    args:
-      creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-  - name: Install Caddy repo
-    ansible.builtin.shell: curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-    args:
-      creates: /etc/apt/sources.list.d/caddy-stable.list
   - name: Install Caddy package
     become: true
     ansible.builtin.apt:
